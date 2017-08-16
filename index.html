@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>木桶布局</title>
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <style>
+        .img-preview {
+            width: 960px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+        }
+
+        .img-row {
+            margin-bottom: 8px;
+        }
+
+        .img-box {
+            float: left;
+        }
+
+        .img-row::after {
+            content: '';
+            display: block;
+            clear: both;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="img-preview"></div>
+
+    <script>
+    
+    /*
+    1. 获取图片将获取的图片放到数组里
+    2. 将图片按规定大小排列  （固定宽、高等）
+    3. 如果图片宽度超出容器宽度，将原来的图片放大到撑满屏幕,最后一张超出的图片放到下一行
+    4. 继续按规定大小排列
+    
+    */
+    function Barrels(container){
+        this.container = container
+        this.baseHeight = 200
+        this.rowList = []
+        this.loadImg()
+    }
+    Barrels.prototype.loadImg = function(){
+        var imgUrls = this.getImgUrls(30)
+        console.log(imgUrls)
+        var _this = this
+        
+        $.each(imgUrls,function(index,value){
+            
+            var img = new Image()
+            img.src = value
+            img.onload = function(){
+                var radio = img.width/img.height
+                var imgInfo = {
+                    target: $(this),
+                    height: _this.baseHeight,
+                    width:  _this.baseHeight*radio,
+                }
+                _this.render(imgInfo)
+            }
+        })
+    }
+
+    Barrels.prototype.render = function(imgInfo){
+        var clientWidth = this.container.width()
+        var rowWidth = 0
+        var rowHeight = 0
+        var lastImgInfo = imgInfo
+        var _this = this
+        this.rowList.push(imgInfo)
+        console.log(this.rowList)
+        $.each(this.rowList,function(index,value){
+            rowWidth += value.width
+            if(rowWidth > clientWidth){
+                _this.rowList.pop()
+                rowWidth = rowWidth - lastImgInfo.width
+                rowHeight = clientWidth * _this.baseHeight / rowWidth;
+                _this.layout(rowHeight)
+                _this.rowList = []
+                _this.rowList.push(lastImgInfo)
+
+            }
+        })
+        
+    }
+    Barrels.prototype.layout = function(rowHeight){
+       
+        var rowImg = $('<div class="img-row"></div>')
+        $.each(this.rowList,function(index,imgInfo){
+            var imgBox = $('<div class="img-box"></div>')
+            var img = imgInfo.target
+            img.height(rowHeight)
+            imgBox.append(img)
+            rowImg.append(imgBox)
+        })
+        this.container.append(rowImg)
+
+    }
+    Barrels.prototype.getImgUrls = function(num){
+       
+        var color, width, height, urls = []
+        for (var i = 0; i < num; i++) {
+            color = Math.random().toString(16).substring(2, 8)
+            width = Math.floor(Math.random() * 100 + 50)
+            height = Math.floor(Math.random() * 30 + 50)
+            urls.push("http://placehold.it/" + width + "x" + height + "/" + color + "/fff")
+        }
+        return urls
+       
+    }
+
+    var a = new Barrels($('.img-preview'))
+
+
+    
+    </script>
+</body>
+
+</html>
